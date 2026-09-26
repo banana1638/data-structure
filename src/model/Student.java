@@ -1,3 +1,5 @@
+package src.model;
+
 public class Student {
     String id;
     String name;
