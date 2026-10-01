@@ -138,7 +138,7 @@ public class CircularLinkedList implements CircularLinkedListADT {
 
         Node current = head;
         do {
-            int cmp = compareNames(studentName, studentName);
+            int cmp = compareNames(studentName, current.data.getName());
             if (cmp == 0) {
                 return current.data;
             }
