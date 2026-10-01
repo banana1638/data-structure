@@ -6,6 +6,6 @@ public class Node {
 
     public Node(Student data) {
         this.data = data;
-        this.next = null;
+        this.link = null;
     }
 }
