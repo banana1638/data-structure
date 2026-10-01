@@ -111,7 +111,7 @@ public class CircularLinkedList implements CircularLinkedListADT {
 
         Node prev = head;
         while (prev.link != head) {
-            int cmp = compareNames(studentName, studentName);
+            int cmp = compareNames(studentName, prev.link.data.getName());
             if (cmp == 0) {
                 Node target = prev.link;
                 prev.link = target.link;
@@ -121,7 +121,7 @@ public class CircularLinkedList implements CircularLinkedListADT {
                 size--;
                 return true;
             }
-            if (cmp > 0) {
+            if (cmp < 0) {
                 break;
             }
             prev = prev.link;
@@ -142,7 +142,7 @@ public class CircularLinkedList implements CircularLinkedListADT {
             if (cmp == 0) {
                 return current.data;
             }
-            if (cmp > 0) {
+            if (cmp < 0) {
                 break;
             }
             current = current.link;
