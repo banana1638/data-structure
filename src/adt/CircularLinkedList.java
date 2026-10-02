@@ -28,6 +28,10 @@ public class CircularLinkedList implements CircularLinkedListADT {
         return head;
     }
 
+    public Node getTail() {
+        return tail;
+    }
+
     private static boolean isValidName(String name) {
         return name != null && !name.trim().isEmpty();
     }
@@ -78,6 +82,7 @@ public class CircularLinkedList implements CircularLinkedListADT {
 
         newNode.link = current.link;
         current.link = newNode;
+
         if (current == tail) {
             tail = newNode;
         }
@@ -97,7 +102,10 @@ public class CircularLinkedList implements CircularLinkedListADT {
             return false;
         }
 
-        if (head.data.getName().equalsIgnoreCase(studentName)) {
+        String target = studentName.trim();
+
+        // if target is the head node
+        if (head.data.getName().equalsIgnoreCase(target)) {
             if (head == tail) {
                 head = null;
                 tail = null;
@@ -109,13 +117,14 @@ public class CircularLinkedList implements CircularLinkedListADT {
             return true;
         }
 
+        //if target is not the head node, traverse the list to find the target
         Node prev = head;
         while (prev.link != head) {
-            int cmp = compareNames(studentName, prev.link.data.getName());
+            int cmp = compareNames(target, prev.link.data.getName());
             if (cmp == 0) {
-                Node target = prev.link;
-                prev.link = target.link;
-                if (target == tail) {
+                Node toDelete = prev.link;
+                prev.link = toDelete.link;
+                if (toDelete == tail) {
                     tail = prev;
                 }
                 size--;
@@ -126,7 +135,7 @@ public class CircularLinkedList implements CircularLinkedListADT {
             }
             prev = prev.link;
         }
-        System.out.println("Delete failed: " + studentName + " not found.");
+        System.out.println("Delete failed: '" + studentName + "' not found.");
         return false;
     }
 
@@ -136,9 +145,10 @@ public class CircularLinkedList implements CircularLinkedListADT {
             return null;
         }
 
+        String target = studentName.trim();
         Node current = head;
         do {
-            int cmp = compareNames(studentName, current.data.getName());
+            int cmp = compareNames(target, current.data.getName());
             if (cmp == 0) {
                 return current.data;
             }
@@ -158,13 +168,32 @@ public class CircularLinkedList implements CircularLinkedListADT {
             return;
         }
 
+        System.out.println("+----------+------------------+--------------------+------+-------+");
+        System.out.println("| ID       | Student Name     | Programme          | Age  | CGPA  |");
+        System.out.println("+----------+------------------+--------------------+------+-------+");
         Node current = head;
-        int index = 1;
         do {
-            System.out.println("Student " + index + ": " + current.data);
+            System.out.println(current.data);
             current = current.link;
-            index++;
         } while (current != head);
+
+        System.out.println("+----------+------------------+--------------------+------+-------+");
+        System.out.println("Total records: " + size + " (Circular loop verified: tail points to " + tail.link.data.getName() + ")");
+    }
+
+    // Helper
+    private void insertFront(Student student){
+        Node newNode = new Node(student);
+        if (head == null){
+            head = newNode;
+            tail = newNode;
+            newNode.link = head;
+        } else{
+            newNode.link = head;
+            tail.link = newNode;
+            head = newNode;
+        }
+        size++;
     }
 
     @Override
@@ -176,24 +205,13 @@ public class CircularLinkedList implements CircularLinkedListADT {
 
         Node current = head;
         do {
-            reversed.insertFront(current.data);
+            Student s = current.data;
+            Student copy = new Student(s.getId(), s.getName(), s.getProgramme(), s.getAge(), s.getCgpa());
+            reversed.insertFront(copy);
             current = current.link;
         } while (current != head);
 
         return reversed;
     }
 
-    private void insertFront(Student student) {
-        Node newNode = new Node(student);
-        if (head == null) {
-            head = newNode;
-            tail = newNode;
-            newNode.link = head;
-        } else {
-            newNode.link = head;
-            tail.link = newNode;
-            head = newNode;
-        }
-        size++;
-    }
 }
