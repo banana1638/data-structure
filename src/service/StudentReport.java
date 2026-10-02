@@ -6,7 +6,7 @@ import model.Student;
 
 public class StudentReport {
 
-    public static void generateReport(CircularLinkedList list){
+    public static void generateReport(CircularLinkedList list) {
         System.out.println("\n==================================================");
         System.out.println("           STUDENT PERFORMANCE REPORT             ");
         System.out.println("==================================================");
@@ -31,10 +31,10 @@ public class StudentReport {
         Student highestStudent = headNode.data;
         Student lowestStudent = headNode.data;
 
-        int deansListCount = 0;   // CGPA >= 3.75
-        int firstClassCount = 0;  // 3.50 <= CGPA < 3.75
+        int deansListCount = 0; // CGPA >= 3.75
+        int firstClassCount = 0; // 3.50 <= CGPA < 3.75
         int secondClassCount = 0; // 3.00 <= CGPA < 3.50
-        int passCount = 0;        // CGPA < 3.00
+        int passCount = 0; // CGPA < 3.00
 
         Node current = headNode;
         do {
