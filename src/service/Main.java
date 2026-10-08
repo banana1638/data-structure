@@ -271,13 +271,9 @@ public class Main extends JFrame {
             tableSorter.setRowFilter(null);
             showToast("INFO", "Showing all " + list.getSize() + " records.");
         } else {
-            try {
-                tableSorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(query)));
-                int matchCount = studentTable.getRowCount();
-                showToast("INFO", "Live Search: " + matchCount + " record(s) matching '" + query + "'.");
-            } catch (Exception ex) {
-                tableSorter.setRowFilter(null);
-            }
+            tableSorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(query)));
+            int matchCount = studentTable.getRowCount();
+            showToast("INFO", "Live Search: " + matchCount + " record(s) matching '" + query + "'.");
         }
     }
 
@@ -842,7 +838,7 @@ public class Main extends JFrame {
             try {
                 age = Integer.parseInt(ageField.getText().trim());
                 if (age <= 0) throw new NumberFormatException();
-            } catch (Exception ex) {
+            } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(dialog, "Age must be a valid positive integer.", "Validation Error", JOptionPane.WARNING_MESSAGE);
                 ageField.requestFocus();
                 return;
@@ -852,7 +848,7 @@ public class Main extends JFrame {
             try {
                 cgpa = Double.parseDouble(cgpaField.getText().trim());
                 if (cgpa < 0.00 || cgpa > 4.00) throw new NumberFormatException();
-            } catch (Exception ex) {
+            } catch (NumberFormatException ex) {
                 JOptionPane.showMessageDialog(dialog, "CGPA must be a valid number between 0.00 and 4.00.", "Validation Error", JOptionPane.WARNING_MESSAGE);
                 cgpaField.requestFocus();
                 return;
@@ -1242,15 +1238,11 @@ public class Main extends JFrame {
      * Enhanced Rounded Distribution Bar Component (12px height with rounded borders)
      */
     private static class RoundedDistributionBar extends JPanel {
-        private final String labelText;
-        private final Color barColor;
         private final JLabel textLabel;
         private final JLabel valueLabel;
         private int percent = 0;
 
         public RoundedDistributionBar(String labelText, Color barColor) {
-            this.labelText = labelText;
-            this.barColor = barColor;
             setOpaque(false);
             setLayout(new BorderLayout(0, 4));
 
@@ -1317,7 +1309,7 @@ public class Main extends JFrame {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (Exception ignored) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ignored) {
             }
 
             Main frame = new Main();
