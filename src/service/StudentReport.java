@@ -35,6 +35,7 @@ public class StudentReport {
         int firstClassCount = 0; // 3.50 <= CGPA < 3.75
         int secondClassCount = 0; // 3.00 <= CGPA < 3.50
         int passCount = 0; // CGPA < 3.00
+        int failCount = 0; // CGPA < 2.00
 
         Node current = headNode;
         do {
@@ -58,8 +59,10 @@ public class StudentReport {
                 firstClassCount++;
             } else if (cgpa >= 3.00) {
                 secondClassCount++;
-            } else {
+            } else if (cgpa >= 2.00) {
                 passCount++;
+            } else {
+                failCount++;
             }
 
             current = current.link;
@@ -78,8 +81,9 @@ public class StudentReport {
         System.out.println("Academic Performance Summary:");
         System.out.printf(" • Dean's List (CGPA >= 3.75)       : %d student(s)\n", deansListCount);
         System.out.printf(" • First Class (3.50 <= CGPA < 3.75): %d student(s)\n", firstClassCount);
-        System.out.printf(" • Second Upper (3.00 <= CGPA < 3.5): %d student(s)\n", secondClassCount);
-        System.out.printf(" • Pass / Others (CGPA < 3.00)      : %d student(s)\n", passCount);
+        System.out.printf(" • Second Class (3.00 <= CGPA < 3.5): %d student(s)\n", secondClassCount);
+        System.out.printf(" • Pass (2.00 <= CGPA < 3.00)      : %d student(s)\n", passCount);
+        System.out.printf(" • Fail (CGPA < 2.00)              : %d student(s)\n", failCount);
         System.out.println("==================================================\n");
     }
 }

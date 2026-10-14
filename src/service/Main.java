@@ -36,21 +36,21 @@ public class Main extends JFrame {
     private static boolean dataModified = false;
 
     // --- Design Tokens: Warm Editorial Academic Palette ---
-    private static final Color COLOR_BG = new Color(0xF7, 0xF5, 0xF0);           // Warm Ivory Canvas
-    private static final Color COLOR_CARD_BG = new Color(0xFF, 0xFF, 0xFF);      // Pure White Card
-    private static final Color COLOR_OXFORD_BLUE = new Color(0x0D, 0x1E, 0x36);  // Oxford Navy Header
+    private static final Color COLOR_BG = new Color(0xF7, 0xF5, 0xF0); // Warm Ivory Canvas
+    private static final Color COLOR_CARD_BG = new Color(0xFF, 0xFF, 0xFF); // Pure White Card
+    private static final Color COLOR_OXFORD_BLUE = new Color(0x0D, 0x1E, 0x36); // Oxford Navy Header
     private static final Color COLOR_OXFORD_HOVER = new Color(0x1B, 0x36, 0x5D); // Oxford Blue Hover
     private static final Color COLOR_OXFORD_LIGHT = new Color(0x22, 0x3A, 0x5E); // Slate Navy
-    private static final Color COLOR_GOLD = new Color(0xB4, 0x82, 0x22);         // Academic Warm Gold
-    private static final Color COLOR_GOLD_HOVER = new Color(0xC9, 0x94, 0x2D);   // Gold Hover
-    private static final Color COLOR_DANGER = new Color(0xBE, 0x12, 0x3C);       // Rose-Crimson Danger
+    private static final Color COLOR_GOLD = new Color(0xB4, 0x82, 0x22); // Academic Warm Gold
+    private static final Color COLOR_GOLD_HOVER = new Color(0xC9, 0x94, 0x2D); // Gold Hover
+    private static final Color COLOR_DANGER = new Color(0xBE, 0x12, 0x3C); // Rose-Crimson Danger
     private static final Color COLOR_DANGER_HOVER = new Color(0x9F, 0x12, 0x39); // Danger Hover
-    private static final Color COLOR_BORDER = new Color(0xE2, 0xDD, 0xD2);       // Subtle Warm Border
-    private static final Color COLOR_TEXT_DARK = new Color(0x1F, 0x29, 0x37);     // Primary Text
-    private static final Color COLOR_TEXT_MUTED = new Color(0x6B, 0x72, 0x80);    // Secondary Text
-    private static final Color COLOR_ROW_ALT = new Color(0xFC, 0xFB, 0xF9);      // Gentle Zebra Row
-    private static final Color COLOR_SELECTED_BG = new Color(0xD8, 0xE8, 0xF8);  // Noticeable Rich Blue Selection
-    private static final Color COLOR_SELECTED_FG = new Color(0x0B, 0x25, 0x45);  // Selected Text Color
+    private static final Color COLOR_BORDER = new Color(0xE2, 0xDD, 0xD2); // Subtle Warm Border
+    private static final Color COLOR_TEXT_DARK = new Color(0x1F, 0x29, 0x37); // Primary Text
+    private static final Color COLOR_TEXT_MUTED = new Color(0x6B, 0x72, 0x80); // Secondary Text
+    private static final Color COLOR_ROW_ALT = new Color(0xFC, 0xFB, 0xF9); // Gentle Zebra Row
+    private static final Color COLOR_SELECTED_BG = new Color(0xD8, 0xE8, 0xF8); // Noticeable Rich Blue Selection
+    private static final Color COLOR_SELECTED_FG = new Color(0x0B, 0x25, 0x45); // Selected Text Color
 
     // Badge Colors
     private static final Color COLOR_DEANS_BG = new Color(0xE6, 0xF4, 0xEA);
@@ -61,6 +61,8 @@ public class Main extends JFrame {
     private static final Color COLOR_SECOND_TXT = new Color(0x92, 0x40, 0x0E);
     private static final Color COLOR_PASS_BG = new Color(0xF3, 0xF4, 0xF6);
     private static final Color COLOR_PASS_TXT = new Color(0x4B, 0x55, 0x63);
+    private static final Color COLOR_FAIL_BG = new Color(0xFE, 0xE2, 0xE2);
+    private static final Color COLOR_FAIL_TXT = new Color(0xBE, 0x12, 0x3C);
 
     // Fonts
     private static final Font FONT_TITLE = new Font("Segoe UI", Font.BOLD, 17);
@@ -75,6 +77,8 @@ public class Main extends JFrame {
     private JTable studentTable;
     private TableRowSorter<DefaultTableModel> tableSorter;
     private JTextField searchField;
+    private ModernButton failFilterBtn;
+    private boolean failOnlyFilter = false;
 
     // Status Bar & Toast Timer
     private JLabel statusBadgeLabel;
@@ -99,6 +103,7 @@ public class Main extends JFrame {
     private RoundedDistributionBar firstClassBar;
     private RoundedDistributionBar secondClassBar;
     private RoundedDistributionBar passBar;
+    private RoundedDistributionBar failBar;
 
     public Main() {
         setTitle("Student Record Management System (CLL ADT) • Academic Premium Edition");
@@ -214,8 +219,7 @@ public class Main extends JFrame {
         searchField.setPreferredSize(new Dimension(200, 32));
         searchField.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(new Color(0x56, 0x73, 0x9B), 1, true),
-                new EmptyBorder(4, 10, 4, 10)
-        ));
+                new EmptyBorder(4, 10, 4, 10)));
         searchField.setToolTipText("Type to filter records live by Name, ID, or Programme");
 
         // Live filtering listener (DocumentListener)
@@ -244,17 +248,40 @@ public class Main extends JFrame {
         resetBtn.setPreferredSize(new Dimension(72, 32));
         resetBtn.addActionListener(e -> {
             searchField.setText("");
-            if (tableSorter != null) {
-                tableSorter.setRowFilter(null);
-            }
+            failOnlyFilter = false;
+            failFilterBtn.setText("Fail Records");
+            applyLiveSearch();
             studentTable.clearSelection();
             inspectTitleLabel.setText("No student selected");
             inspectDetailLabel.setText("Click on any row to inspect student profile");
-            showToast("INFO", "Search filter cleared. Showing all " + list.getSize() + " records.");
+            showToast("INFO", "All filters cleared.");
+        });
+
+        failFilterBtn = new ModernButton(
+                "Fail Records",
+                COLOR_DANGER,
+                COLOR_DANGER_HOVER,
+                Color.WHITE);
+        failFilterBtn.setPreferredSize(new Dimension(105, 32));
+
+        failFilterBtn.addActionListener(e -> {
+            failOnlyFilter = !failOnlyFilter;
+
+            failFilterBtn.setText(
+                    failOnlyFilter ? "Show All" : "Fail Records");
+
+            applyLiveSearch();
+
+            if (failOnlyFilter) {
+                showToast("WARN", "Showing students with CGPA below 2.00.");
+            } else {
+                showToast("INFO", "Fail filter disabled.");
+            }
         });
 
         searchPanel.add(searchField);
         searchPanel.add(searchBtn);
+        searchPanel.add(failFilterBtn);
         searchPanel.add(resetBtn);
 
         header.add(brandPanel, BorderLayout.WEST);
@@ -265,16 +292,48 @@ public class Main extends JFrame {
 
     private void applyLiveSearch() {
         String query = searchField.getText().trim();
-        if (tableSorter == null) return;
 
-        if (query.isEmpty()) {
-            tableSorter.setRowFilter(null);
-            showToast("INFO", "Showing all " + list.getSize() + " records.");
-        } else {
-            tableSorter.setRowFilter(RowFilter.regexFilter("(?i)" + Pattern.quote(query)));
-            int matchCount = studentTable.getRowCount();
-            showToast("INFO", "Live Search: " + matchCount + " record(s) matching '" + query + "'.");
+        if (tableSorter == null) {
+            return;
         }
+
+        java.util.List<RowFilter<Object, Object>> filters = new java.util.ArrayList<>();
+
+        // Preserve the existing live search across all table columns.
+        if (!query.isEmpty()) {
+            filters.add(
+                    RowFilter.regexFilter(
+                            "(?i)" + Pattern.quote(query)));
+        }
+
+        // Filter by the numeric CGPA value in column index 4.
+        if (failOnlyFilter) {
+            filters.add(new RowFilter<Object, Object>() {
+                @Override
+                public boolean include(
+                        Entry<? extends Object, ? extends Object> entry) {
+
+                    Object value = entry.getValue(4);
+
+                    // Defensive check: do not include malformed values.
+                    if (!(value instanceof Number)) {
+                        return false;
+                    }
+
+                    return ((Number) value).doubleValue() < 2.00;
+                }
+            });
+        }
+
+        if (filters.isEmpty()) {
+            tableSorter.setRowFilter(null);
+        } else {
+            tableSorter.setRowFilter(RowFilter.andFilter(filters));
+        }
+
+        showToast(
+                failOnlyFilter ? "WARN" : "INFO",
+                studentTable.getRowCount() + " record(s) displayed.");
     }
 
     // ==========================================
@@ -294,7 +353,8 @@ public class Main extends JFrame {
         ModernButton deleteBtn = new ModernButton("Delete Selected", COLOR_DANGER, COLOR_DANGER_HOVER, Color.WHITE);
         deleteBtn.addActionListener(e -> executeDelete());
 
-        ModernButton reverseBtn = new ModernButton("Reverse Inspector", new Color(0xF5, 0xF2, 0xEB), new Color(0xEA, 0xE4, 0xD8), COLOR_TEXT_DARK);
+        ModernButton reverseBtn = new ModernButton("Reverse Inspector", new Color(0xF5, 0xF2, 0xEB),
+                new Color(0xEA, 0xE4, 0xD8), COLOR_TEXT_DARK);
         reverseBtn.setBorderColor(new Color(0xD4, 0xCC, 0xBF));
         reverseBtn.addActionListener(e -> showReverseCopyInspector());
 
@@ -307,7 +367,8 @@ public class Main extends JFrame {
                     "Save Complete", JOptionPane.INFORMATION_MESSAGE);
         });
 
-        ModernButton resetSortBtn = new ModernButton("CLL Order", new Color(0xF5, 0xF2, 0xEB), new Color(0xEA, 0xE4, 0xD8), COLOR_TEXT_DARK);
+        ModernButton resetSortBtn = new ModernButton("CLL Order", new Color(0xF5, 0xF2, 0xEB),
+                new Color(0xEA, 0xE4, 0xD8), COLOR_TEXT_DARK);
         resetSortBtn.setBorderColor(new Color(0xD4, 0xCC, 0xBF));
         resetSortBtn.setToolTipText("Reset table sorting back to physical Circular Linked List order");
         resetSortBtn.addActionListener(e -> {
@@ -324,7 +385,7 @@ public class Main extends JFrame {
         toolbar.add(resetSortBtn);
 
         // Data Table
-        String[] columnNames = {"Student ID", "Full Name", "Programme", "Age", "Academic Standing / CGPA"};
+        String[] columnNames = { "Student ID", "Full Name", "Programme", "Age", "Academic Standing / CGPA" };
         tableModel = new DefaultTableModel(columnNames, 0) {
             @Override
             public boolean isCellEditable(int row, int column) {
@@ -333,8 +394,10 @@ public class Main extends JFrame {
 
             @Override
             public Class<?> getColumnClass(int columnIndex) {
-                if (columnIndex == 3) return Integer.class;
-                if (columnIndex == 4) return Double.class;
+                if (columnIndex == 3)
+                    return Integer.class;
+                if (columnIndex == 4)
+                    return Double.class;
                 return String.class;
             }
         };
@@ -368,7 +431,7 @@ public class Main extends JFrame {
         DefaultTableCellRenderer leftPaddingRenderer = new DefaultTableCellRenderer() {
             @Override
             public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                                                           boolean hasFocus, int row, int column) {
+                    boolean hasFocus, int row, int column) {
                 Component c = super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
                 setBorder(new EmptyBorder(0, 12, 0, 0));
                 if (!isSelected) {
@@ -389,7 +452,8 @@ public class Main extends JFrame {
         studentTable.getColumnModel().getColumn(1).setPreferredWidth(140);
         studentTable.getColumnModel().getColumn(1).setCellRenderer(leftPaddingRenderer);
 
-        studentTable.getColumnModel().getColumn(2).setPreferredWidth(115); // Ample width for "Cybersecurity" & "Data Science"
+        studentTable.getColumnModel().getColumn(2).setPreferredWidth(115); // Ample width for "Cybersecurity" & "Data
+                                                                           // Science"
         studentTable.getColumnModel().getColumn(2).setCellRenderer(centerRenderer);
 
         studentTable.getColumnModel().getColumn(3).setPreferredWidth(55);
@@ -427,7 +491,8 @@ public class Main extends JFrame {
 
             String standing = getStandingLabel(cgpa);
             inspectTitleLabel.setText(name + " (" + id + ")");
-            inspectDetailLabel.setText(String.format("Programme: %s  |  Age: %d  |  CGPA: %.2f (%s)", prog, age, cgpa, standing));
+            inspectDetailLabel
+                    .setText(String.format("Programme: %s  |  Age: %d  |  CGPA: %.2f (%s)", prog, age, cgpa, standing));
             showToast("INFO", "Selected student: " + name + " [CGPA: " + String.format("%.2f", cgpa) + "]");
         } else {
             inspectTitleLabel.setText("No student selected");
@@ -436,9 +501,14 @@ public class Main extends JFrame {
     }
 
     private String getStandingLabel(double cgpa) {
-        if (cgpa >= 3.75) return "Dean's List";
-        if (cgpa >= 3.50) return "First Class";
-        if (cgpa >= 3.00) return "Second Upper";
+        if (cgpa < 2.00)
+            return "Fail";
+        if (cgpa >= 3.75)
+            return "Dean's List";
+        if (cgpa >= 3.50)
+            return "First Class";
+        if (cgpa >= 3.00)
+            return "Second Upper";
         return "Pass";
     }
 
@@ -486,8 +556,7 @@ public class Main extends JFrame {
         inspectCard.setBackground(new Color(0xF4, 0xF7, 0xFA));
         inspectCard.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(new Color(0xD0, 0xDD, 0xEB), 1, true),
-                new EmptyBorder(8, 12, 8, 12)
-        ));
+                new EmptyBorder(8, 12, 8, 12)));
         inspectCard.setAlignmentX(Component.LEFT_ALIGNMENT);
         inspectCard.setMaximumSize(new Dimension(Integer.MAX_VALUE, 70));
 
@@ -523,7 +592,8 @@ public class Main extends JFrame {
         deansBar = new RoundedDistributionBar("Dean's List (≥ 3.75)", new Color(0x16, 0xA3, 0x4A));
         firstClassBar = new RoundedDistributionBar("First Class (3.50 ~ 3.74)", new Color(0x25, 0x63, 0xEB));
         secondClassBar = new RoundedDistributionBar("Second Upper (3.00 ~ 3.49)", new Color(0xD9, 0x77, 0x06));
-        passBar = new RoundedDistributionBar("Pass / Others (< 3.00)", new Color(0x64, 0x74, 0x8B));
+        passBar = new RoundedDistributionBar("Pass (2.00 ~ 2.99)", new Color(0x64, 0x74, 0x8B));
+        failBar = new RoundedDistributionBar("Fail (CGPA < 2.00)", COLOR_DANGER);
 
         distPanel.add(distTitle);
         distPanel.add(Box.createVerticalStrut(10));
@@ -534,9 +604,12 @@ public class Main extends JFrame {
         distPanel.add(secondClassBar);
         distPanel.add(Box.createVerticalStrut(9));
         distPanel.add(passBar);
+        distPanel.add(Box.createVerticalStrut(9));
+        distPanel.add(failBar);
 
         // Console Report Action Button
-        ModernButton printConsoleBtn = new ModernButton("Print Full Terminal Report", new Color(0xF5, 0xF2, 0xEB), new Color(0xEA, 0xE4, 0xD8), COLOR_OXFORD_BLUE);
+        ModernButton printConsoleBtn = new ModernButton("Print Full Terminal Report", new Color(0xF5, 0xF2, 0xEB),
+                new Color(0xEA, 0xE4, 0xD8), COLOR_OXFORD_BLUE);
         printConsoleBtn.setBorderColor(new Color(0x0D, 0x1E, 0x36));
         printConsoleBtn.setAlignmentX(Component.LEFT_ALIGNMENT);
         printConsoleBtn.setMaximumSize(new Dimension(Integer.MAX_VALUE, 34));
@@ -568,8 +641,7 @@ public class Main extends JFrame {
         box.setBackground(new Color(0xFA, 0xF9, 0xF6));
         box.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(COLOR_BORDER, 1, true),
-                new EmptyBorder(8, 12, 8, 12)
-        ));
+                new EmptyBorder(8, 12, 8, 12)));
 
         JLabel titleLbl = new JLabel(title);
         titleLbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -597,8 +669,7 @@ public class Main extends JFrame {
         box.setBackground(new Color(0xFA, 0xF9, 0xF6));
         box.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(COLOR_BORDER, 1, true),
-                new EmptyBorder(8, 12, 8, 12)
-        ));
+                new EmptyBorder(8, 12, 8, 12)));
 
         JLabel titleLbl = new JLabel(title);
         titleLbl.setFont(new Font("Segoe UI", Font.PLAIN, 12));
@@ -695,7 +766,7 @@ public class Main extends JFrame {
             Node current = list.getHead();
             do {
                 Student s = current.data;
-                tableModel.addRow(new Object[]{
+                tableModel.addRow(new Object[] {
                         s.getId(),
                         s.getName(),
                         s.getProgramme(),
@@ -720,6 +791,7 @@ public class Main extends JFrame {
             firstClassBar.updateData(0, 0);
             secondClassBar.updateData(0, 0);
             passBar.updateData(0, 0);
+            failBar.updateData(0, 0);
             return;
         }
 
@@ -734,6 +806,7 @@ public class Main extends JFrame {
         int firstCount = 0;
         int secondCount = 0;
         int passCount = 0;
+        int failCount = 0;
 
         Node current = headNode;
         do {
@@ -756,8 +829,10 @@ public class Main extends JFrame {
                 firstCount++;
             } else if (cgpa >= 3.00) {
                 secondCount++;
-            } else {
+            } else if (cgpa >= 2.00) {
                 passCount++;
+            } else {
+                failCount++;
             }
 
             current = current.link;
@@ -777,6 +852,7 @@ public class Main extends JFrame {
         firstClassBar.updateData(firstCount, count);
         secondClassBar.updateData(secondCount, count);
         passBar.updateData(passCount, count);
+        failBar.updateData(failCount, count);
     }
 
     // ==========================================
@@ -798,7 +874,8 @@ public class Main extends JFrame {
 
         JTextField idField = new JTextField(15);
         JTextField nameField = new JTextField(15);
-        JComboBox<String> progCombo = new JComboBox<>(new String[]{"CS", "SE", "IT", "Data Science", "Cybersecurity"});
+        JComboBox<String> progCombo = new JComboBox<>(
+                new String[] { "CS", "SE", "IT", "Data Science", "Cybersecurity" });
         progCombo.setEditable(true);
         JTextField ageField = new JTextField(15);
         JTextField cgpaField = new JTextField(15);
@@ -812,7 +889,8 @@ public class Main extends JFrame {
         JPanel btnPanel = new JPanel(new FlowLayout(FlowLayout.RIGHT, 10, 0));
         btnPanel.setOpaque(false);
 
-        ModernButton cancelBtn = new ModernButton("Cancel", new Color(0xF5, 0xF2, 0xEB), new Color(0xEA, 0xE4, 0xD8), COLOR_TEXT_DARK);
+        ModernButton cancelBtn = new ModernButton("Cancel", new Color(0xF5, 0xF2, 0xEB), new Color(0xEA, 0xE4, 0xD8),
+                COLOR_TEXT_DARK);
         cancelBtn.setBorderColor(new Color(0xD4, 0xCC, 0xBF));
         cancelBtn.addActionListener(e -> dialog.dispose());
 
@@ -824,12 +902,14 @@ public class Main extends JFrame {
             prog = (prog != null) ? prog.trim() : "";
 
             if (id.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Student ID cannot be empty.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Student ID cannot be empty.", "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
                 idField.requestFocus();
                 return;
             }
             if (name.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Student Name cannot be empty.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Student Name cannot be empty.", "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
                 nameField.requestFocus();
                 return;
             }
@@ -837,9 +917,11 @@ public class Main extends JFrame {
             int age;
             try {
                 age = Integer.parseInt(ageField.getText().trim());
-                if (age <= 0) throw new NumberFormatException();
+                if (age <= 0)
+                    throw new NumberFormatException();
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(dialog, "Age must be a valid positive integer.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "Age must be a valid positive integer.", "Validation Error",
+                        JOptionPane.WARNING_MESSAGE);
                 ageField.requestFocus();
                 return;
             }
@@ -847,9 +929,11 @@ public class Main extends JFrame {
             double cgpa;
             try {
                 cgpa = Double.parseDouble(cgpaField.getText().trim());
-                if (cgpa < 0.00 || cgpa > 4.00) throw new NumberFormatException();
+                if (cgpa < 0.00 || cgpa > 4.00)
+                    throw new NumberFormatException();
             } catch (NumberFormatException ex) {
-                JOptionPane.showMessageDialog(dialog, "CGPA must be a valid number between 0.00 and 4.00.", "Validation Error", JOptionPane.WARNING_MESSAGE);
+                JOptionPane.showMessageDialog(dialog, "CGPA must be a valid number between 0.00 and 4.00.",
+                        "Validation Error", JOptionPane.WARNING_MESSAGE);
                 cgpaField.requestFocus();
                 return;
             }
@@ -920,7 +1004,8 @@ public class Main extends JFrame {
         }
 
         int confirm = JOptionPane.showConfirmDialog(this,
-                "Are you sure you want to delete the record for '" + targetName + "'?\nThis action will unlink the node from Circular Linked List.",
+                "Are you sure you want to delete the record for '" + targetName
+                        + "'?\nThis action will unlink the node from Circular Linked List.",
                 "Confirm Deletion", JOptionPane.YES_NO_OPTION, JOptionPane.WARNING_MESSAGE);
 
         if (confirm == JOptionPane.YES_OPTION) {
@@ -960,14 +1045,14 @@ public class Main extends JFrame {
         notePanel.setBackground(new Color(0xEE, 0xF2, 0xFF));
         notePanel.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(new Color(0xC7, 0xD2, 0xFE), 1, true),
-                new EmptyBorder(8, 12, 8, 12)
-        ));
+                new EmptyBorder(8, 12, 8, 12)));
 
         JLabel infoTitle = new JLabel("Reverse Traversal Inspector (Independent Copy)");
         infoTitle.setFont(FONT_BOLD);
         infoTitle.setForeground(new Color(0x1E, 0x40, 0xAF));
 
-        JLabel infoDesc = new JLabel("Generated via createReverseCopy(). The original circular linked list remains strictly sorted.");
+        JLabel infoDesc = new JLabel(
+                "Generated via createReverseCopy(). The original circular linked list remains strictly sorted.");
         infoDesc.setFont(FONT_SUBTITLE);
         infoDesc.setForeground(new Color(0x3B, 0x82, 0xF6));
 
@@ -975,14 +1060,14 @@ public class Main extends JFrame {
         notePanel.add(infoDesc, BorderLayout.SOUTH);
 
         // Reversed Table
-        String[] columns = {"Seq #", "Student ID", "Full Name", "Programme", "Age", "CGPA"};
+        String[] columns = { "Seq #", "Student ID", "Full Name", "Programme", "Age", "CGPA" };
         DefaultTableModel revModel = new DefaultTableModel(columns, 0);
 
         Node curr = reversed.getHead();
         int seq = 1;
         do {
             Student s = curr.data;
-            revModel.addRow(new Object[]{
+            revModel.addRow(new Object[] {
                     seq++,
                     s.getId(),
                     s.getName(),
@@ -1068,7 +1153,8 @@ public class Main extends JFrame {
             String line;
             while ((line = br.readLine()) != null) {
                 line = line.trim();
-                if (line.isEmpty()) continue;
+                if (line.isEmpty())
+                    continue;
 
                 String[] parts = line.split(",");
                 if (parts.length == 5) {
@@ -1097,14 +1183,14 @@ public class Main extends JFrame {
         card.setBackground(COLOR_CARD_BG);
         card.setBorder(BorderFactory.createCompoundBorder(
                 new LineBorder(COLOR_BORDER, 1, true),
-                new EmptyBorder(14, 16, 14, 16)
-        ));
+                new EmptyBorder(14, 16, 14, 16)));
         return card;
     }
 
     /**
      * Modern Custom-Painted Button
-     * Solves Windows Look&Feel background overriding and renders crisp, vibrant styles.
+     * Solves Windows Look&Feel background overriding and renders crisp, vibrant
+     * styles.
      */
     public static class ModernButton extends JButton {
         private final Color normalBg;
@@ -1180,7 +1266,7 @@ public class Main extends JFrame {
     private static class CgpaBadgeRenderer extends DefaultTableCellRenderer {
         @Override
         public Component getTableCellRendererComponent(JTable table, Object value, boolean isSelected,
-                                                       boolean hasFocus, int row, int column) {
+                boolean hasFocus, int row, int column) {
             if (!(value instanceof Double)) {
                 return super.getTableCellRendererComponent(table, value, isSelected, hasFocus, row, column);
             }
@@ -1190,7 +1276,11 @@ public class Main extends JFrame {
             Color bgColor;
             Color txtColor;
 
-            if (cgpa >= 3.75) {
+            if (cgpa < 2.00) {
+                text = String.format("%.2f  Fail", cgpa);
+                bgColor = COLOR_FAIL_BG;
+                txtColor = COLOR_FAIL_TXT;
+            } else if (cgpa >= 3.75) {
                 text = String.format("%.2f  Dean's List", cgpa);
                 bgColor = COLOR_DEANS_BG;
                 txtColor = COLOR_DEANS_TXT;
@@ -1235,7 +1325,8 @@ public class Main extends JFrame {
     }
 
     /**
-     * Enhanced Rounded Distribution Bar Component (12px height with rounded borders)
+     * Enhanced Rounded Distribution Bar Component (12px height with rounded
+     * borders)
      */
     private static class RoundedDistributionBar extends JPanel {
         private final JLabel textLabel;
@@ -1309,7 +1400,8 @@ public class Main extends JFrame {
         SwingUtilities.invokeLater(() -> {
             try {
                 UIManager.setLookAndFeel(UIManager.getSystemLookAndFeelClassName());
-            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException | UnsupportedLookAndFeelException ignored) {
+            } catch (ClassNotFoundException | InstantiationException | IllegalAccessException
+                    | UnsupportedLookAndFeelException ignored) {
             }
 
             Main frame = new Main();
