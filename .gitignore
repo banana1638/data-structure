@@ -2,3 +2,4 @@ bin/
 *.class
 .vscode/
 nbproject/private/
+students.csv
