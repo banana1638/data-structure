@@ -7,11 +7,13 @@ public class CircularLinkedList implements CircularLinkedListADT {
     private Node head;
     private Node tail;
     private int size;
+    private int nextStudentNumber;
 
     public CircularLinkedList() {
         this.head = null;
         this.tail = null;
         this.size = 0;
+        this.nextStudentNumber = 101;
     }
 
     @Override
@@ -41,6 +43,30 @@ public class CircularLinkedList implements CircularLinkedListADT {
     }
 
     @Override
+    public String getNextStudentId() {
+        return String.format("S%03d", nextStudentNumber);
+    }
+
+    @Override
+    public boolean addStudent(String name, String programme, int age, double cgpa) {
+        Student student = new Student(getNextStudentId(), name, programme, age, cgpa);
+        return insertSorted(student);
+    }
+
+    private void updateNextStudentNumber(String studentId) {
+        if (studentId == null || !studentId.matches("S\\d+")) {
+            return;
+        }
+
+        try {
+            int idNumber = Integer.parseInt(studentId.substring(1));
+            nextStudentNumber = Math.max(nextStudentNumber, idNumber + 1);
+        } catch (NumberFormatException ignored) {
+            // IDs outside the supported numeric range do not affect generated IDs.
+        }
+    }
+
+    @Override
     public boolean insertSorted(Student student) {
         if (student == null || !isValidName(student.getName())) {
             System.out.println("Error: Student record cannot be empty.");
@@ -54,6 +80,7 @@ public class CircularLinkedList implements CircularLinkedListADT {
             tail = newNode;
             newNode.link = head;
             size++;
+            updateNextStudentNumber(student.getId());
             return true;
         }
 
@@ -67,6 +94,7 @@ public class CircularLinkedList implements CircularLinkedListADT {
             tail.link = newNode; // Tail points to new node
             head = newNode;
             size++;
+            updateNextStudentNumber(student.getId());
             return true;
         }
 
@@ -87,6 +115,7 @@ public class CircularLinkedList implements CircularLinkedListADT {
             tail = newNode;
         }
         size++;
+        updateNextStudentNumber(student.getId());
         return true;
     }
 

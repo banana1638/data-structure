@@ -872,7 +872,10 @@ public class Main extends JFrame {
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.insets = new Insets(6, 6, 6, 6);
 
-        JTextField idField = new JTextField(15);
+        JTextField idField = new JTextField(list.getNextStudentId(), 15);
+        idField.setEditable(false);
+        idField.setBackground(new Color(0xEE, 0xEB, 0xE3));
+        idField.setToolTipText("Student ID is generated automatically by the system.");
         JTextField nameField = new JTextField(15);
         JComboBox<String> progCombo = new JComboBox<>(
                 new String[] { "CS", "SE", "IT", "Data Science", "Cybersecurity" });
@@ -896,17 +899,10 @@ public class Main extends JFrame {
 
         ModernButton submitBtn = new ModernButton("Add Student", COLOR_OXFORD_BLUE, COLOR_OXFORD_HOVER, Color.WHITE);
         submitBtn.addActionListener(e -> {
-            String id = idField.getText().trim();
             String name = nameField.getText().trim();
             String prog = (String) progCombo.getSelectedItem();
             prog = (prog != null) ? prog.trim() : "";
 
-            if (id.isEmpty()) {
-                JOptionPane.showMessageDialog(dialog, "Student ID cannot be empty.", "Validation Error",
-                        JOptionPane.WARNING_MESSAGE);
-                idField.requestFocus();
-                return;
-            }
             if (name.isEmpty()) {
                 JOptionPane.showMessageDialog(dialog, "Student Name cannot be empty.", "Validation Error",
                         JOptionPane.WARNING_MESSAGE);
@@ -938,7 +934,7 @@ public class Main extends JFrame {
                 return;
             }
 
-            boolean success = list.insertSorted(new Student(id, name, prog, age, cgpa));
+            boolean success = list.addStudent(name, prog, age, cgpa);
             if (success) {
                 dataModified = true;
                 refreshTableAndDashboard();
